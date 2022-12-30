@@ -10,16 +10,10 @@ import numpy as np
 
 
 class Node:
-    """A binary search tree (BST) class.
-
-    Implements functionality for a BST to include insertion, removal, and
-    determination of various attributes.
+    """A head node of a binary search tree.
 
     Attributes:
-        val: The value of the head node.
-        right_child: A reference to a right BST subtree.
-        left_child: A reference to a left BST subtree.
-    
+        val: The value of the node.    
     """
 
     def __init__(self, *, val: float):
@@ -30,13 +24,19 @@ class Node:
             val: The value that the node represents.
         """
         self.val = val
-        self.right_child = None
-        self.left_child = None
 
 
 class BST:
-    """
-    A 
+    """A binary search tree (BST) class.
+
+    Implements functionality for a BST to include insertion, removal, and
+    determination of various attributes.
+
+    Attributes:
+        head: The head node of the BST.
+        left_bst: A reference to a left BST subtree.
+        right_bst: A reference to a right BST subtree.
+    
     """
 
     def __init__(self):
@@ -45,8 +45,7 @@ class BST:
         self.right_bst = None
 
     def add_data(self, *, data: list):
-        """
-        Adds nodes in a list of data to the BST.
+        """Adds nodes in a list of data to the BST.
 
         Args:
             data: List of floats to be added to the BST.
