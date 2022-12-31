@@ -51,7 +51,8 @@ class BST:
         Args:
             val: The value of the node to insert.
         """
-        if not self.head:
+        if self.head == None:
+            # Note: Explicit equality with 'None' avoids error if head is '0'.
             self.head = val
             return
 
@@ -353,32 +354,29 @@ def test_bst(*, num_tests: int, n: int, m: int):
     bst = BST()
     bst.add_data(data=data)
     data = set(data)
-
     for i in np.arange(num_tests):
         print(
             "Test " + str(i + 1) + " of " + str(num_tests) + ".", end="\r", flush=True
         )
         assert bst.check_consistancy()
-        if not data == set(bst.enumerate_in_order()):
-            breakpoint()
         assert data == set(bst.enumerate_in_order())
 
         # Randomly decide whether to add or remove data.
         add_data = np.random.rand() >= 0.5
         sample_size = np.random.randint(low=1, high=m + 1)
         sample = list(np.random.choice(a=np.arange(n), size=sample_size, replace=False))
-        if bst.head in sample:
-            sample.remove(bst.head)
         if add_data:
             bst.add_data(data=sample)
             data = data.union(set(sample))
         else:
+            if bst.head in sample:
+                sample.remove(bst.head)
             bst.remove_data(data=sample)
             data = data.difference(set(sample))
 
 
 def main():
-    test_bst(num_tests=20, n=100000, m=10000)
+    test_bst(num_tests=200, n=100000, m=1000)
 
 
 if __name__ == "__main__":
