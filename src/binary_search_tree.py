@@ -9,23 +9,6 @@ tests to verify the BST's functionatiy.
 import numpy as np
 
 
-class Node:
-    """A head node of a binary search tree.
-
-    Attributes:
-        val: The value of the node.    
-    """
-
-    def __init__(self, *, val: float):
-        """
-        Initializes node.
-
-        Args:
-            val: The value that the node represents.
-        """
-        self.val = val
-
-
 class BST:
     """A binary search tree (BST) class.
 
@@ -33,7 +16,7 @@ class BST:
     determination of various attributes.
 
     Attributes:
-        head: The head node of the BST.
+        head: The value of the head node.
         left_bst: A reference to a left BST subtree.
         right_bst: A reference to a right BST subtree.
     
@@ -69,14 +52,14 @@ class BST:
             val: The value of the node to insert.
         """
         if not self.head:
-            self.head = Node(val=val)
+            self.head = val
             return
 
-        if val < self.head.val:
+        if val < self.head:
             if not self.left_bst:
                 self.left_bst = BST()
             self.left_bst.insert(val=val)
-        elif val > self.head.val:
+        elif val > self.head:
             if not self.right_bst:
                 self.right_bst = BST()
             self.right_bst.insert(val=val)
@@ -90,17 +73,17 @@ class BST:
         Args:
             val: The value of the node to remove.
         """
-        if self.head.val == val:
+        if self.head == val:
             # To do: Special logic if root node is to be removed
             pass
 
         # Determine whether one of children is the node to be removed.
         child_node_removed = None
         is_left_child = False
-        if self.left_bst and self.left_bst.head.val == val:
+        if self.left_bst and self.left_bst.head == val:
             child_node_removed = self.left_bst
             is_left_child = True
-        if self.right_bst and self.right_bst.head.val == val:
+        if self.right_bst and self.right_bst.head == val:
             child_node_removed = self.right_bst
 
         if child_node_removed:
@@ -130,7 +113,7 @@ class BST:
             else:
                 # If child has both left/right subtree's, update child value to min in child's right sub-stree
                 new_val = child_node_removed.right_bst.min_value
-                child_node_removed.head.val = new_val
+                child_node_removed.head = new_val
                 # Update value so redundant node is later removed
                 val = new_val
 
@@ -148,12 +131,12 @@ class BST:
         Returns:
             A boolean indicating whether the node is present.
         """
-        if self.head.val == val:
+        if self.head == val:
             return True
 
-        if val < self.head.val:
+        if val < self.head:
             return self.left_bst.exists(val=val)
-        elif val > self.head.val:
+        elif val > self.head:
             return self.right_bst.exists(val=val)
 
         return False
@@ -182,7 +165,7 @@ class BST:
         if self.right_bst:
             right_part = self.right_bst.enumerate_in_order()
 
-        return left_part + [self.head.val] + right_part
+        return left_part + [self.head] + right_part
 
     @property
     def depth(self) -> int:
@@ -254,7 +237,7 @@ class BST:
         Returns:
             Float for the maximum node value.
         """
-        max_val = self.head.val
+        max_val = self.head
 
         if not self.right_bst:
             return max_val
@@ -268,7 +251,7 @@ class BST:
         Returns:
             Float for the minimum node value.
         """
-        min_val = self.head.val
+        min_val = self.head
         if not self.left_bst:
             return min_val
 
@@ -288,11 +271,11 @@ class BST:
         left_valid = True
         right_valid = True
         if self.left_bst:
-            if self.left_bst.head.val > self.head.val:
+            if self.left_bst.head > self.head:
                 valid = False
                 left_valid = self.left_bst.valid
         if self.right_bst:
-            if self.right_bst.head.val < self.head.val:
+            if self.right_bst.head < self.head:
                 right_valid = self.right_bst.vald
 
         return valid and left_valid and right_valid
@@ -376,14 +359,16 @@ def test_bst(*, num_tests: int, n: int, m: int):
             "Test " + str(i + 1) + " of " + str(num_tests) + ".", end="\r", flush=True
         )
         assert bst.check_consistancy()
+        if not data == set(bst.enumerate_in_order()):
+            breakpoint()
         assert data == set(bst.enumerate_in_order())
 
         # Randomly decide whether to add or remove data.
         add_data = np.random.rand() >= 0.5
         sample_size = np.random.randint(low=1, high=m + 1)
         sample = list(np.random.choice(a=np.arange(n), size=sample_size, replace=False))
-        if bst.head.val in sample:
-            sample.remove(bst.head.val)
+        if bst.head in sample:
+            sample.remove(bst.head)
         if add_data:
             bst.add_data(data=sample)
             data = data.union(set(sample))
