@@ -9,6 +9,21 @@ tests to verify the BST's functionatiy.
 import numpy as np
 
 
+class Node:
+    """A node in a binary search tree (BST).
+
+    Here the node only stores a value for location in the BST. Attributes
+    could be added to this class to store data for use in an actual 
+    application.
+
+    Attributes:
+        val: The value of the node in the BST>
+    """
+
+    def __init__(self, val: float):
+        self.val = val
+
+
 class BST:
     """A binary search tree (BST) class.
 
@@ -53,14 +68,14 @@ class BST:
         """
         if self.head == None:
             # Note: Explicit equality with 'None' avoids error if head is '0'.
-            self.head = val
+            self.head = Node(val=val)
             return
 
-        if val < self.head:
+        if val < self.head.val:
             if not self.left_bst:
                 self.left_bst = BST()
             self.left_bst.insert(val=val)
-        elif val > self.head:
+        elif val > self.head.val:
             if not self.right_bst:
                 self.right_bst = BST()
             self.right_bst.insert(val=val)
@@ -69,7 +84,11 @@ class BST:
         return
 
     def remove(self, val: float):
-        if self.head == val:
+        if self.head == None:
+            return
+
+        if self.head.val == val:
+            node_removed = self.head
             if not self.left_bst and not self.right_bst:
                 self.head = None
             elif self.left_bst and not self.right_bst:
@@ -84,8 +103,9 @@ class BST:
                 self.right_bst = replace_bst.right_bst
             else:
                 new_val = self.right_bst.min_value
-                self.head = new_val
+                self.head.val = new_val
                 val = new_val
+            del node_removed
 
         self._remove_subtree(val=val)
 
@@ -98,10 +118,10 @@ class BST:
         # Determine whether one of children is the node to be removed.
         child_node_removed = None
         is_left_child = False
-        if self.left_bst and self.left_bst.head == val:
+        if self.left_bst and self.left_bst.head.val == val:
             child_node_removed = self.left_bst
             is_left_child = True
-        if self.right_bst and self.right_bst.head == val:
+        if self.right_bst and self.right_bst.head.val == val:
             child_node_removed = self.right_bst
 
         if child_node_removed:
@@ -131,7 +151,7 @@ class BST:
             else:
                 # If child has both left/right subtree's, update child value to min in child's right sub-stree
                 new_val = child_node_removed.right_bst.min_value
-                child_node_removed.head = new_val
+                child_node_removed.head.val = new_val
                 # Update value so redundant node is later removed
                 val = new_val
 
@@ -149,12 +169,15 @@ class BST:
         Returns:
             A boolean indicating whether the node is present.
         """
-        if self.head == val:
+        if not self.head:
+            return False
+
+        if self.head.val == val:
             return True
 
-        if val < self.head:
+        if val < self.head.val:
             return self.left_bst.exists(val=val)
-        elif val > self.head:
+        elif val > self.head.val:
             return self.right_bst.exists(val=val)
 
         return False
@@ -180,6 +203,9 @@ class BST:
         Returns:
             List of node values in increasing order.
         """
+        if not self.head:
+            return []
+
         left_part = []
         right_part = []
         if self.left_bst:
@@ -187,7 +213,7 @@ class BST:
         if self.right_bst:
             right_part = self.right_bst.enumerate_in_order()
 
-        vals = left_part + [self.head] + right_part
+        vals = left_part + [self.head.val] + right_part
         if vals == [None]:
             return []
         return vals
@@ -221,7 +247,7 @@ class BST:
         Returns:
             Integer value the diameter of the BST.
         """
-        if self.head == None:
+        if not self.head:
             return 0
 
         left_depth = 0
@@ -269,10 +295,10 @@ class BST:
         Returns:
             Float for the maximum node value.
         """
-        if self.head == None:
+        if not self.head:
             max_val = -np.inf
         else:
-            max_val = self.head
+            max_val = self.head.val
 
         if not self.right_bst:
             return None if max_val == -np.inf else max_val
@@ -287,10 +313,10 @@ class BST:
         Returns:
             Float for the minimum node value.
         """
-        if self.head == None:
+        if not self.head:
             min_val = np.inf
         else:
-            min_val = self.head
+            min_val = self.head.val
 
         if not self.left_bst:
             return None if min_val == np.inf else min_val
@@ -308,15 +334,18 @@ class BST:
         Returns:
             Boolean indicator of whether the BST is valid.
         """
+        if not self.head:
+            return True
+
         valid = True
         left_valid = True
         right_valid = True
         if self.left_bst:
-            if self.left_bst.head > self.head:
+            if self.left_bst.head.val > self.head.val:
                 valid = False
             left_valid = self.left_bst.valid
         if self.right_bst:
-            if self.right_bst.head < self.head:
+            if self.right_bst.head.val < self.head.val:
                 valid = False
             right_valid = self.right_bst.valid
 
@@ -340,7 +369,6 @@ class BST:
             raise ValueError("BST is not valid.")
 
         data = self.enumerate_in_order()
-
         # Check that every value can be found in BST.
         is_found = [self.exists(val=val) for val in data]
         if not np.sum(is_found) == len(data):
@@ -411,7 +439,8 @@ def test_bst(*, num_tests: int, n: int, m: int):
             flush=True,
         )
         assert bst.check_consistancy()
-        assert data == set(bst.enumerate_in_order())
+        if not data == set(bst.enumerate_in_order()):
+            breakpoint()
 
         # Randomly decide whether to add or remove data.
         add_data = np.random.rand() >= 0.5

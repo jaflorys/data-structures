@@ -11,6 +11,10 @@ import numpy as np
 class Node:
     """A class for node in the linked list.
 
+    Here the node only stores value and child references. 
+    Additional data attributes can be added for functionality
+    in an actual application.
+
     Attributes:
         val: The value of the node.
         child: A reference a child node.
