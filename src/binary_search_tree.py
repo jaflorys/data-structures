@@ -69,15 +69,32 @@ class BST:
         return
 
     def remove(self, val: float):
+        if self.head == val:
+            if not self.left_bst and not self.right_bst:
+                self.head = None
+            elif self.left_bst and not self.right_bst:
+                self.head = self.left_bst.head
+                replace_bst = self.left_bst
+                self.left_bst = replace_bst.left_bst
+                self.right_bst = replace_bst.right_bst
+            elif not self.left_bst and self.right_bst:
+                self.head = self.right_bst.head
+                replace_bst = self.right_bst
+                self.left_bst = replace_bst.left_bst
+                self.right_bst = replace_bst.right_bst
+            else:
+                new_val = self.right_bst.min_value
+                self.head = new_val
+                val = new_val
+
+        self._remove_subtree(val=val)
+
+    def _remove_subtree(self, val: float):
         """Removes a node from the BST.
 
         Args:
             val: The value of the node to remove.
         """
-        if self.head == val:
-            # To do: Special logic if root node is to be removed
-            pass
-
         # Determine whether one of children is the node to be removed.
         child_node_removed = None
         is_left_child = False
@@ -119,9 +136,9 @@ class BST:
                 val = new_val
 
         if self.left_bst:
-            self.left_bst.remove(val=val)
+            self.left_bst._remove_subtree(val=val)
         if self.right_bst:
-            self.right_bst.remove(val=val)
+            self.right_bst._remove_subtree(val=val)
 
     def exists(self, *, val: float) -> bool:
         """Determines whether node is in BST.
@@ -149,6 +166,10 @@ class BST:
         Returns:
             Integer equal to the total number of nodes in the BST.
         """
+        if self.head == None:
+            # Note: Explicitly check equal to 'None' to avoid error if head is '0'.
+            return 0
+
         left_size = self.left_bst.size if self.left_bst else 0
         right_size = self.right_bst.size if self.right_bst else 0
         return 1 + left_size + right_size
@@ -166,7 +187,10 @@ class BST:
         if self.right_bst:
             right_part = self.right_bst.enumerate_in_order()
 
-        return left_part + [self.head] + right_part
+        vals = left_part + [self.head] + right_part
+        if vals == [None]:
+            return []
+        return vals
 
     @property
     def depth(self) -> int:
@@ -197,18 +221,25 @@ class BST:
         Returns:
             Integer value the diameter of the BST.
         """
+        if self.head == None:
+            return 0
+
         left_depth = 0
         right_depth = 0
         left_diam = 0
         right_diam = 0
+
+        num_child_links = 0
         if self.left_bst:
             left_depth = self.left_bst.depth
             left_diam = self.left_bst.diameter
+            num_child_links += 1
         if self.right_bst:
             right_depth = self.right_bst.depth
             right_diam = self.right_bst.diameter
+            num_child_links += 1
 
-        my_diameter = 2 + left_depth + right_depth
+        my_diameter = num_child_links + left_depth + right_depth
 
         return max(my_diameter, left_diam, right_diam)
 
@@ -238,12 +269,16 @@ class BST:
         Returns:
             Float for the maximum node value.
         """
-        max_val = self.head
+        if self.head == None:
+            max_val = -np.inf
+        else:
+            max_val = self.head
 
         if not self.right_bst:
-            return max_val
+            return None if max_val == -np.inf else max_val
 
-        return self.right_bst.max_value
+        max_val = max(max_val, self.right_bst.max_value)
+        return None if max_val == -np.inf else max_val
 
     @property
     def min_value(self) -> float:
@@ -252,11 +287,16 @@ class BST:
         Returns:
             Float for the minimum node value.
         """
-        min_val = self.head
-        if not self.left_bst:
-            return min_val
+        if self.head == None:
+            min_val = np.inf
+        else:
+            min_val = self.head
 
-        return self.left_bst.min_value
+        if not self.left_bst:
+            return None if min_val == np.inf else min_val
+
+        min_val = min(min_val, self.left_bst.min_value)
+        return None if min_val == np.inf else min_val
 
     @property
     def valid(self) -> bool:
@@ -277,7 +317,7 @@ class BST:
                 left_valid = self.left_bst.valid
         if self.right_bst:
             if self.right_bst.head < self.head:
-                right_valid = self.right_bst.vald
+                right_valid = self.right_bst.valid
 
         return valid and left_valid and right_valid
 
@@ -308,13 +348,19 @@ class BST:
         # Check in order enumeration.
         deltas = [int((data[i] - data[i - 1]) <= 0) for i in np.arange(1, len(data))]
         if np.sum(deltas) > 0:
-            raise ValueError("Error in inorder enumeration.")
+            raise ValueError("In-order enumeration error.")
 
         # Check max and min functions.
-        if not data[0] == self.min_value:
-            raise ValueError("Min value function error.")
-        if not data[-1] == self.max_value:
-            raise ValueError("Max value function error.")
+        if len(data) > 0:
+            if not data[0] == self.min_value:
+                raise ValueError("Min value function error.")
+            if not data[-1] == self.max_value:
+                raise ValueError("Max value function error.")
+        else:
+            if self.min_value:
+                raise ValueError("Min value function error.")
+            if self.max_value:
+                raise ValueError("Max value function error.")
 
         # Check size consistent with enumerated output.
         if not self.size == len(data):
@@ -323,6 +369,9 @@ class BST:
         # Check depth does not exceed diameter.
         if self.depth > self.diameter:
             raise ValueError("BST depth cannot exceed its diameter.")
+
+        if self.diameter > self.size:
+            raise ValueError("BST diameter cannot exceed the number of nodes.")
 
         return True
 
@@ -356,7 +405,9 @@ def test_bst(*, num_tests: int, n: int, m: int):
     data = set(data)
     for i in np.arange(num_tests):
         print(
-            "Test " + str(i + 1) + " of " + str(num_tests) + ".", end="\r", flush=True
+            "Test " + str(i + 1) + " of " + "{:.0f}".format(num_tests) + ".",
+            end="\r",
+            flush=True,
         )
         assert bst.check_consistancy()
         assert data == set(bst.enumerate_in_order())
@@ -369,14 +420,15 @@ def test_bst(*, num_tests: int, n: int, m: int):
             bst.add_data(data=sample)
             data = data.union(set(sample))
         else:
-            if bst.head in sample:
-                sample.remove(bst.head)
             bst.remove_data(data=sample)
             data = data.difference(set(sample))
 
 
 def main():
-    test_bst(num_tests=200, n=100000, m=1000)
+    test_bst(num_tests=2000, n=1, m=1)
+    test_bst(num_tests=2000, n=3, m=2)
+    test_bst(num_tests=2000, n=10, m=10)
+    test_bst(num_tests=100, n=100000, m=10000)
 
 
 if __name__ == "__main__":
