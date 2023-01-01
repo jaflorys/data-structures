@@ -314,10 +314,11 @@ class BST:
         if self.left_bst:
             if self.left_bst.head > self.head:
                 valid = False
-                left_valid = self.left_bst.valid
+            left_valid = self.left_bst.valid
         if self.right_bst:
             if self.right_bst.head < self.head:
-                right_valid = self.right_bst.valid
+                valid = False
+            right_valid = self.right_bst.valid
 
         return valid and left_valid and right_valid
 
